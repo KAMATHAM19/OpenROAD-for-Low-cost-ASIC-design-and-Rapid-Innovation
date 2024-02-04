@@ -71,23 +71,113 @@ chmod 777 or_source.sh
 ```
 source or_source.sh
 ```
+run the command `openroad -gui` 
+
+## Steps to run the Design 
+### Design 1 - gcd, Technology - nangate45
+```
+Step 1: Ubuntu terminal based on Linux OS installation.
+Step 2: Type cd and press enter button
+Step 3: source or_source.sh
+Step 4: cd OpenROAD-flow-scripts/flow
+Step 5: make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk
+```
+All the commands should be executed inside the flow directory for RTL-GDSII generation.
+<div align = "center"><img width="518" alt="image" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/6f230ddf-e7ff-4042-a43d-61b06d8cdb45"></div>
+
+## Steps to run the design stage by stage
+To run the OpenROAD flow stage by stage, for synthesis, floorplan, placement, CTS, routing, and GDS-II generation, using the following commands.
+1. Synthesis with yosys
+```
+   make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk synth
+```
+<div align = "center"><img width="935" alt="3" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/40f90a0b-3577-43b8-9eac-7b45ed3be238"></div>
+
+2. Floorplan includes floorplan initialization/IO placement/Macro placement/Power planning
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk floorplan
+```
+<div align = "center"><img width="930" alt="5" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/275db25e-67e3-4108-a874-8519b21baa0a"></div>
+
+To see the floorplan in gui 
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk gui_floorplan
+```
+<div align = "center"><img width="932" alt="image" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/9069d021-8e2d-4b15-9d89-47dc94edad87"></div>
+
+3. Placement includes global placement/resizer/detail placement
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk place
+```
+<div align = "center"><img width="931" alt="6" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/b2c790fc-4976-4bf7-9f6e-59bf8f661b9b"></div>
+To see the placement in gui
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk gui_place
+```
+<div align ="center"><img width="932" alt="7" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/717603df-8262-4635-b191-0da47b0da5e0"></div>
+
+4. Clock Tree Synthesis (CTS) includes clock tree build/optimization
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk cts
+```
+<div align ="center"><img width="932" alt="8" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/057d5d60-b9f0-4c67-83ca-5884589ae167"></div>
+
+To see the CTS in gui
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk gui_cts
+```
+<div align = "center"><img width="926" alt="9" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/ede4b6de-30e7-4aae-a7b8-ee31e71624be"></div>
+
+5. Routing includes global routing/detail routing
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk route
+```
+<div align = "center"><img width="931" alt="10" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/64db94be-e61d-4186-9011-f85a98fee7a0"></div>
+
+To see the routing in gui
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk gui_route
+```
+<div align = "center"><img width="931" alt="11" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/7acfe655-26dc-4ffa-bdfa-7c2bf57c1f5a"></div>
+
+6. Finishing includes post-route timing extraction/GDSII generation with KLayout
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk finish
+```
+<div align = "center"><img width="929" alt="12" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/cf7a4304-edfc-4fa0-8057-55d0df5fd1eb"></div>
+
+To view the final GDSII in KLayout:
+
+```
+klayout -l platforms/nangate45/FreePDK45.lyp results/nangate45/gcd/base/6_final.gds
+```
+<div align = "center"><img width="931" alt="13" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/3a200772-912f-495e-be87-5b63b7c2c1f5"></div>
+
+## Clean the previous run database
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk clean_floorplan
+```
+To remove entire logs/results/reports for the specific run, use
+```
+make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk clean_all
+```
+## AutoTuner Installation
+Autotuner-related commands should be executed from the flow/util directory.
+```
+pip3 install -U --user 'ray[default,tune]==1.13.0' ax-platform hyperopt nevergrad optuna pandas
+pip3 install -U --user colorama==0.4.4 bayesian-optimization==1.4.0
+```
+To run autotuner for nangate45/gcd
+```
+cd util
+python3.9 distributed.py --design gcd --platform nangate45 --config ../designs/nangate45/gcd/autotuner.json tune
+```
+To view Hyperparameter using Tensorboard
+```
+tensorboard --logdir=../logs/nangate45/gcd/test-tune-2024-012-11-47-27/
+```
 
 
-openroad -gui
-
-in openroad flow scripts 
-cd openroad flow scripts/
-git checkout master
-git pull
-
-cd flow
-make
-
-
-/home/venkat/OpenROAD-flow-scripts/flow/reports/nangate45/gcd/base
-
-
-open_road - /home/venkat/Desktop/open_source/design/tools/open_road/OpenROAD-flow-scripts
 
 
 
@@ -110,8 +200,8 @@ open_road - /home/venkat/Desktop/open_source/design/tools/open_road/OpenROAD-flo
 
 
 
-
-Reference
+## Reference
 
 https://theopenroadproject.org/
+
 https://github.com/The-OpenROAD-Project
