@@ -110,7 +110,9 @@ make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk gui_floorplan
 make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk place
 ```
 <div align = "center"><img width="931" alt="6" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/b2c790fc-4976-4bf7-9f6e-59bf8f661b9b"></div>
+
 To see the placement in gui
+
 ```
 make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk gui_place
 ```
@@ -176,9 +178,17 @@ To view Hyperparameter using Tensorboard
 ```
 tensorboard --logdir=../logs/nangate45/gcd/test-tune-2024-012-11-47-27/
 ```
+### Design 2 - spm, Technology - gf180
 
+https://openroad-flow-scripts.readthedocs.io/en/latest/user/AddingNewDesign.html#adding-new-designs-to-the-orfs
 
-
+Step 1: Create the Verilog source files directory based on the top module name.
+```
+cd OpenROAD-flow-scripts/flow/designs/src
+mkdir spm
+cd spm
+vi spm.v
+```
 
 
 
