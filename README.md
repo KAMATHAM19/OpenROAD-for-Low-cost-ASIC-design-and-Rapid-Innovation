@@ -17,7 +17,24 @@ The flow and the supported nodes in OpenROAD are
 5. Install GCC compiler - `sudo apt-get install gcc g++`
 6. Install Python - `sudo apt-get install python3`
 
- ## Klayout
+## Yosys - Logic Synthesis
+Download the yosys from `https://github.com/YosysHQ/oss-cad-suite-build/releases/tag/2024-01-17`
+
+Install the yosys
+```
+wget https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2024-01-17/oss-cad-suite-linux-x64-20240117.tgz
+tar -xzvf oss-cad-suite-linux-x64-20240117.tgz
+```
+
+## OpenROAD - Floorplanning through Detailed Routing
+Install the OpenROAD
+```
+wget https://github.com/Precision-Innovations/OpenROAD/releases/download/2024-01-16/openroad_2.0_amd64-ubuntu22.04-2024-01-16.deb
+sudo apt install ./openroad_2.0_amd64-ubuntu22.04-2024-01-16.deb
+git clone https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts.git
+```
+
+## Klayout - GDS merge, DRC and LVS (public PDKs)
  Install the required dependencies for the Klayout tool
  
 ```
@@ -35,21 +52,6 @@ Install the klayout
 ```
 wget https://www.klayout.org/downloads/Ubuntu-22/klayout_0.28.15-1_amd64.deb
 sudo dpkg -i klayout_0.28.15-1_amd64.deb
-```
-## Yosys
-Download the yosys from `https://github.com/YosysHQ/oss-cad-suite-build/releases/tag/2024-01-17`
-
-Install the yosys
-```
-wget https://github.com/YosysHQ/oss-cad-suite-build/releases/download/2024-01-17/oss-cad-suite-linux-x64-20240117.tgz
-tar -xzvf oss-cad-suite-linux-x64-20240117.tgz
-```
-## OpenROAD
-Install the OpenROAD
-```
-wget https://github.com/Precision-Innovations/OpenROAD/releases/download/2024-01-16/openroad_2.0_amd64-ubuntu22.04-2024-01-16.deb
-sudo apt install ./openroad_2.0_amd64-ubuntu22.04-2024-01-16.deb
-git clone https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts.git
 ```
 ## Creating a Script file
 1. Create the script file `gedit or_source.sh` and edit the locations of yosys and open_road. 
@@ -189,29 +191,135 @@ mkdir spm
 cd spm
 vi spm.v
 ```
+Step 2: Add verilog code into spm.v
+```
+// Copyright 2023 Efabless Corporation
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
+// (Parameterized) Unsigned Serial/Parallel Multiplier:
+// - Multiplicand x (Input bit-serially)
+// - Multiplier a (All bits at the same time/Parallel)
+// - Product y (Output bit-serial)
+module spm #(parameter bits=32) (
+    input clk,
+    input rst,
+    input x,
+    input[bits-1: 0] a,
+    output y
+);
+    wire[bits: 0] y_chain;
+    assign y_chain[0] = 0;
+    assign y = y_chain[bits];
 
+    wire[bits-1:0] a_flip;
+    generate 
+        for (genvar i = 0; i < bits; i = i + 1) begin : flip_block
+            assign a_flip[i] = a[bits - i - 1];
+        end 
+    endgenerate
 
+    delayed_serial_adder dsa[bits-1:0](
+        .clk(clk),
+        .rst(rst),
+        .x(x),
+        .a(a_flip),
+        .y_in(y_chain[bits-1:0]),
+        .y_out(y_chain[bits:1])
+    );
 
+endmodule
 
+module delayed_serial_adder(
+    input clk,
+    input rst,
+    input x,
+    input a,
+    input y_in,
+    output reg y_out
+);
+    reg last_carry;
+    wire last_carry_next;
+    wire y_out_next;
 
+    wire g = x & a;
+    assign {last_carry_next, y_out_next} = g + y_in + last_carry;
 
+    always @ (posedge clk or negedge rst) begin
+        if (!rst) begin
+            last_carry <= 1'b0;
+            y_out <= 1'b0;
+        end else begin
+            last_carry <= last_carry_next;
+            y_out <= y_out_next;
+        end
+    end
+endmodule
+```
+Step 3: Create config.mk to define design configuration.
+```
+cd designs/gf180
+mkdir spm
+cd spm
+vi config.mk
+```
+Step 4: Define key design parameters in config.mk
+```
+export PLATFORM         = gf180
+export DESIGN_NAME      = spm
+export VERILOG_FILES    = $(sort $(wildcard ./designs/src/$(DESIGN_NICKNAME)/*.v))
+export SDC_FILE         = ./designs/$(PLATFORM)/$(DESIGN_NICKNAME)/constraint.sdc
+export CORE_UTILIZATION = 40
+export PLACE_DENSITY    = 0.60
+export TNS_END_PERCENT  = 100
+```
+Step 5: Define SDC constraints
+```
+cd designs/gf180/spm
+vi constraint.sdc
+```
+Edit as required to define design constraints
+```
+current_design spm
+set clk_name  core_clock
+set clk_port_name clk
+set clk_period 10
+set clk_io_pct 0.2
 
+set clk_port [get_ports $clk_port_name]
+create_clock -name $clk_name -period $clk_period  $clk_port
+set non_clock_inputs [lsearch -inline -all -not -exact [all_inputs] $clk_port]
 
+set_input_delay  [expr $clk_period * $clk_io_pct] -clock $clk_name $non_clock_inputs
+set_output_delay [expr $clk_period * $clk_io_pct] -clock $clk_name [all_outputs]
+```
+Step 6: To run the flow with the make command and it will run synthesis, floorplan, placement, CTS, routing, and GDS-II generation.
+```
+make DESIGN_CONFIG=./designs/gf180/spm/config.mk
+```
+<div align = "center"><img width="934" alt="14" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/094e2d8a-a3b1-4d15-873c-cab4e41f9b80"></div>
 
+SPM GDS-II layout in openroad
 
+<div align = "center"><img width="932" alt="gf180" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/d28cdca3-b75a-445a-9319-c70f9e732c00"></div>
 
+To view the final GDSII in KLayout:
 
-
-
-
-
-
-
-
+<div align = "center"><img width="932" alt="15" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/bc0dae8e-589a-46b9-8c93-c26caac66195"></div>
 
 ## Reference
 
-https://theopenroadproject.org/
-
-https://github.com/The-OpenROAD-Project
+1. https://theopenroadproject.org/
+2. https://github.com/The-OpenROAD-Project
+3. https://openroad-flow-scripts.readthedocs.io/en/latest/user/UserGuide.html
+4. 
