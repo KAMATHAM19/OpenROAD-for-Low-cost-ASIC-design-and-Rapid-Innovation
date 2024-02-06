@@ -298,7 +298,7 @@ make DESIGN_CONFIG=./designs/gf180/spm/config.mk
 ```
 <div align = "center"><img width="934" alt="14" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/094e2d8a-a3b1-4d15-873c-cab4e41f9b80"></div>
 
-SPM GDS-II layout in openroad
+SPM GDS-II layout in open-road
 
 <div align = "center"><img width="932" alt="gf180" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/d28cdca3-b75a-445a-9319-c70f9e732c00"></div>
 
@@ -312,3 +312,7 @@ To view the final GDSII in KLayout:
 2. https://github.com/The-OpenROAD-Project
 3. https://openroad-flow-scripts.readthedocs.io/en/latest/user/UserGuide.html
 4. https://vlsicad.ucsd.edu
+
+
+
+![VENKAT KAMATHAM1](https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/f6e8816d-8e43-41a7-9f9c-15da724c569a)
