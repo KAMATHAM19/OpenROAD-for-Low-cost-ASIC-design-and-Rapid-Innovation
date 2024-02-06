@@ -4,8 +4,11 @@ OpenROAD is an open-source tool that helps in designing integrated circuits (ICs
 
 The flow and the supported nodes in OpenROAD are
 
-<div align = "center"><img width="412" alt="1" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/7eaa9c22-ad38-4be5-97a6-8090fa87a993"></div>
+<div align = "center"><img width="622" alt="flow" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/8831d749-26c4-40d5-a8fa-27f78ccbd477"></div>
 
+                                   Source:https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts
+
+<div align = "center"><img width="412" alt="1" src="https://github.com/KAMATHAM19/OpenROAD-for-Low-cost-ASIC-design-and-Rapid-Innovation/assets/64173714/7eaa9c22-ad38-4be5-97a6-8090fa87a993"></div>
 
 # Lab
 
@@ -165,22 +168,8 @@ To remove entire logs/results/reports for the specific run, use
 ```
 make DESIGN_CONFIG=./designs/nangate45/gcd/config.mk clean_all
 ```
-## AutoTuner Installation
-Autotuner-related commands should be executed from the flow/util directory.
-```
-pip3 install -U --user 'ray[default,tune]==1.13.0' ax-platform hyperopt nevergrad optuna pandas
-pip3 install -U --user colorama==0.4.4 bayesian-optimization==1.4.0
-```
-To run autotuner for nangate45/gcd
-```
-cd util
-python3.9 distributed.py --design gcd --platform nangate45 --config ../designs/nangate45/gcd/autotuner.json tune
-```
-To view Hyperparameter using Tensorboard
-```
-tensorboard --logdir=../logs/nangate45/gcd/test-tune-2024-012-11-47-27/
-```
-### Design 2 - spm, Technology - gf180
+
+### Design 2 - SPM, Technology - gf180
 
 https://openroad-flow-scripts.readthedocs.io/en/latest/user/AddingNewDesign.html#adding-new-designs-to-the-orfs
 
@@ -322,4 +311,4 @@ To view the final GDSII in KLayout:
 1. https://theopenroadproject.org/
 2. https://github.com/The-OpenROAD-Project
 3. https://openroad-flow-scripts.readthedocs.io/en/latest/user/UserGuide.html
-4. 
+4. https://vlsicad.ucsd.edu
